@@ -7,14 +7,14 @@ class Convert
     get_less_files.each do |name|
       unless ['bootstrap.less', 'responsive.less'].include?(name)
         file = open_git_file("https://raw.github.com/twitter/bootstrap/master/less/#{name}")
-        file = convert(file) 
 
-        if name == 'progress-bars.less'
-          file = fix_progress_bar(file)
-        end
-
-        if name == 'variables.less'
-          file = insert_default_vars(file)
+        file = case name
+        when 'progress-bars.less'
+          fix_progress_bar(file)
+        when 'variables.less'
+          insert_default_vars(file)
+        else
+          convert(file)
         end
 
         save_file(name, file) unless name == 'mixins.less'
@@ -57,7 +57,7 @@ private
   def get_less_files
     files = open("https://api.github.com/repos/twitter/bootstrap/git/trees/#{get_tree_sha}").read
     files = JSON.parse files
-    files['tree'].map{|f| f['path']}
+    files['tree'].map{|f| f['path']}.reject { |a| a == 'tests' }
   end
 
 
